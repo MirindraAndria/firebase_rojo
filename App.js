@@ -1,28 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, Button, StyleSheet } from 'react-native';
 import { getUsers } from './src/services/firebase'; // Assurez-vous du bon chemin
 
 const App = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isHomePage, setIsHomePage] = useState(true); // État pour basculer entre la page d'accueil et la page des utilisateurs
 
-  useEffect(() => {
-    // Récupérer les utilisateurs
-    const fetchUsers = async () => {
-      try {
-        const usersData = await getUsers();
-        setUsers(Object.values(usersData)); // Transformer l'objet en tableau
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Récupérer les utilisateurs
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const usersData = await getUsers();
+      setUsers(Object.values(usersData)); // Transformer l'objet en tableau
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUsers();
-  }, []);
-  
+  if (isHomePage) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Bienvenue sur l'application</Text>
+        <Button
+          title="Voir la liste des utilisateurs"
+          onPress={() => {
+            setIsHomePage(false); // Passer à la page des utilisateurs
+            fetchUsers(); // Charger les utilisateurs
+          }}
+        />
+      </View>
+    );
+  }
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -44,6 +57,10 @@ const App = () => {
           <Text style={styles.userName}>Name: {user.name}</Text>
         </View>
       ))}
+      <Button
+        title="Retour à l'accueil"
+        onPress={() => setIsHomePage(true)} // Retour à la page d'accueil
+      />
     </View>
   );
 };
@@ -53,7 +70,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f4f4f4',
-  
   },
   title: {
     fontSize: 24,
